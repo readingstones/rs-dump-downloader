@@ -38,13 +38,8 @@ jobs:
           fi
         fi
         
-    - name: Setup Git config
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-    - name: Commit and push if changes
-      run: |
-        git add .
-        git diff --staged --quiet || git commit -m "Auto-update: New RS dump"
-        git push
+    - name: Commit and Push
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Auto-update: RS Dump
+        file_pattern: '*.json'
