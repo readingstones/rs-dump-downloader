@@ -1,0 +1,50 @@
+name: Download RS Dump
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Download and compare
+      run: |
+        # Download to temporary file
+        curl -s -o "rs_dump_latest.json" "https://chisel.weirdgloop.org/gazproj/gazbot/rs_dump.json"
+        
+        # Check if we have any previous files
+        previous_files=$(ls rs_dump_*.json 2>/dev/null | tail -1)
+        
+        if [ -z "$previous_files" ]; then
+          # No previous files, this is first download
+          mv "rs_dump_latest.json" "rs_dump_$(date +%Y%m%d_%H%M%S).json"
+          echo "First download completed"
+        else
+          # Compare with the most recent file
+          if cmp -s "rs_dump_latest.json" "$previous_files"; then
+            # Files are identical - no changes
+            rm "rs_dump_latest.json"
+            echo "No changes detected"
+          else
+            # Files are different - save new version
+            mv "rs_dump_latest.json" "rs_dump_$(date +%Y%m%d_%H%M%S).json"
+            echo "New version detected and saved"
+          fi
+        fi
+        
+    - name: Setup Git config
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+    - name: Commit and push if changes
+      run: |
+        git add .
+        git diff --staged --quiet || git commit -m "Auto-update: New RS dump"
+        git push
