@@ -5,6 +5,9 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   download:
     runs-on: ubuntu-latest
@@ -31,6 +34,7 @@ jobs:
             # Files are identical - no changes
             rm "rs_dump_latest.json"
             echo "No changes detected"
+            exit 0
           else
             # Files are different - save new version
             mv "rs_dump_latest.json" "rs_dump_$(date +%Y%m%d_%H%M%S).json"
@@ -38,7 +42,11 @@ jobs:
           fi
         fi
         
-    - name: Commit and Push
-      uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: Auto-update: RS Dump
+    - name: Commit and push
+      if: success()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Auto-update: RS Dump $(date +%Y%m%d_%H%M%S)" || echo "No changes to commit"
+        git push
