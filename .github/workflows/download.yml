@@ -20,27 +20,34 @@ jobs:
       run: |
         # Download to temporary file
         curl -s -o "rs_dump_latest.json" "https://chisel.weirdgloop.org/gazproj/gazbot/rs_dump.json"
+        echo "Downloaded latest version"
         
         # Check if we have any previous files
         previous_files=$(ls rs_dump_*.json 2>/dev/null | tail -1)
+        echo "Previous files: $previous_files"
         
         if [ -z "$previous_files" ]; then
           # No previous files, this is first download
+          echo "No previous files found - first download"
           mv "rs_dump_latest.json" "rs_dump_$(date +%Y%m%d_%H%M%S).json"
           echo "First download completed"
         else
           # Compare with the most recent file
+          echo "Comparing with: $previous_files"
           if cmp -s "rs_dump_latest.json" "$previous_files"; then
             # Files are identical - no changes
             rm "rs_dump_latest.json"
-            echo "No changes detected"
-            exit 0
+            echo "No changes detected - removing temporary file"
           else
             # Files are different - save new version
             mv "rs_dump_latest.json" "rs_dump_$(date +%Y%m%d_%H%M%S).json"
             echo "New version detected and saved"
           fi
         fi
+        
+        # List files for debugging
+        echo "Current files in directory:"
+        ls -la *.json 2>/dev/null || echo "No JSON files found"
         
     - name: Commit and push
       if: success()
