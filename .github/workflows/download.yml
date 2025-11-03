@@ -18,13 +18,13 @@ jobs:
       
     - name: Download and compare
       run: |
+        # Check for existing files FIRST (before downloading)
+        previous_files=$(ls rs_dump_*.json 2>/dev/null | grep -v rs_dump_latest.json | tail -1)
+        echo "Existing files: $previous_files"
+        
         # Download to temporary file
         curl -s -o "rs_dump_latest.json" "https://chisel.weirdgloop.org/gazproj/gazbot/rs_dump.json"
         echo "Downloaded latest version"
-        
-        # Check if we have any previous files
-        previous_files=$(ls rs_dump_*.json 2>/dev/null | tail -1)
-        echo "Previous files: $previous_files"
         
         if [ -z "$previous_files" ]; then
           # No previous files, this is first download
