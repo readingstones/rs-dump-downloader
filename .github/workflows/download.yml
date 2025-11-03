@@ -42,4 +42,3 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: Auto-update: RS Dump
-        file_pattern: '*.json'
